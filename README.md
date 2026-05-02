@@ -27,7 +27,7 @@ Browser and Electron renderer APIs do not expose the Windows Bluetooth Hands-Fre
 
 ## Why The C# Helper Exists
 
-C#/.NET can safely host the local bridge, persist state, run Windows discovery commands, structure HFP AT commands, and later add deeper Windows APIs such as WASAPI and RFCOMM without changing the React UI contract.
+C#/.NET safely hosts the local bridge, persists state, runs Windows discovery commands, structures HFP AT commands, and isolates WASAPI or RFCOMM-facing code from the React UI contract.
 
 ## Setup
 
@@ -83,7 +83,7 @@ MockMode is also the right mode for UI development and bridge testing.
 
 ## RealMode
 
-Use Settings -> Helper mode -> RealMode after pairing the phone in Windows. In this MVP, RealMode performs best-effort detection and reports what Windows exposes:
+Use Settings -> Helper mode -> RealMode after pairing the phone in Windows. RealMode performs best-effort detection and reports what Windows exposes:
 
 - Paired Bluetooth PnP entries.
 - Likely HFP service names when visible.
@@ -143,12 +143,3 @@ DeskCall stores local app state under the current Windows user profile:
 - Recent call records
 
 No SMS, photos, notifications, browser data, or phone files are accessed.
-
-## Future Improvements
-
-- PBAP contact import with explicit user consent.
-- Deeper WASAPI endpoint routing and monitoring.
-- A signed Windows installer.
-- Auto-start with Windows.
-- Tray mode and background call popup.
-- Optional RFCOMM implementation for hardware/driver combinations that expose HFP sockets.

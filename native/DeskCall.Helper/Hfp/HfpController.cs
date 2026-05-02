@@ -8,12 +8,16 @@ public sealed class HfpController
     private readonly LogService _log;
     private readonly AppStateStore _store;
     private readonly object _gate = new();
+    private readonly IHfpTransport _mockTransport = new MockHfpTransport();
+    private readonly IHfpTransport _realModeTransport = new CapabilityReportingHfpTransport();
     private DateTimeOffset? _activeStartedAt;
+    private IHfpTransport _activeTransport;
 
     public HfpController(LogService log, AppStateStore store)
     {
         _log = log;
         _store = store;
+        _activeTransport = store.Data.HelperMode == HelperMode.MockMode ? _mockTransport : _realModeTransport;
     }
 
     public event Action<HfpCallEvent>? CallEvent;
@@ -21,25 +25,28 @@ public sealed class HfpController
 
     public void SetMode(HelperMode mode)
     {
-        _log.Info("HFP", $"HFP controller mode is {mode}.");
+        _activeTransport = mode == HelperMode.MockMode ? _mockTransport : _realModeTransport;
+        _log.Info("HFP", $"HFP controller mode is {mode} using {_activeTransport.Name}.");
     }
 
     public Task<ActiveCallInfo?> GetCallStateAsync() => Task.FromResult(CurrentCall);
 
     public async Task DialAsync(string number)
     {
-        EnsureMockModeOrThrow("dial", HfpCommand.Dial(number));
         if (string.IsNullOrWhiteSpace(number))
         {
             throw new InvalidOperationException("Phone number is required.");
         }
+
+        var result = await _activeTransport.DialAsync(number);
+        EnsureTransportAvailable("dial", result);
 
         lock (_gate)
         {
             CurrentCall = new ActiveCallInfo(Guid.NewGuid().ToString("N"), number.Trim(), null, CallDirection.Outgoing, CallStatus.Ringing, null, 0);
         }
 
-        _log.Info("HFP", $"Mock outgoing call started with {HfpCommand.Dial(number)}.");
+        _log.Info("HFP", result.Message);
         Emit(HfpCallEventKind.Ringing, CurrentCall!);
         await Task.Delay(900);
         SetActive();
@@ -47,7 +54,11 @@ public sealed class HfpController
 
     public Task MockIncomingAsync(string number, string? name)
     {
-        EnsureMockModeOrThrow("mock incoming call", "RING / +CLIP");
+        if (!_activeTransport.SupportsMockIncoming)
+        {
+            throw new InvalidOperationException("Mock incoming calls are only available while DeskCall is in MockMode.");
+        }
+
         lock (_gate)
         {
             CurrentCall = new ActiveCallInfo(Guid.NewGuid().ToString("N"), number, name, CallDirection.Incoming, CallStatus.Ringing, null, 0);
@@ -58,40 +69,42 @@ public sealed class HfpController
         return Task.CompletedTask;
     }
 
-    public Task AnswerAsync()
+    public async Task AnswerAsync()
     {
-        EnsureMockModeOrThrow("answer", HfpCommand.Answer);
         if (CurrentCall is null)
         {
             throw new InvalidOperationException("No call is available to answer.");
         }
 
-        _log.Info("HFP", $"Answering call with {HfpCommand.Answer}.");
+        var result = await _activeTransport.AnswerAsync();
+        EnsureTransportAvailable("answer", result);
+        _log.Info("HFP", result.Message);
         SetActive();
-        return Task.CompletedTask;
     }
 
     public async Task RejectAsync()
     {
-        EnsureMockModeOrThrow("reject", HfpCommand.HangUp);
         if (CurrentCall is null)
         {
             throw new InvalidOperationException("No call is available to reject.");
         }
 
-        _log.Info("HFP", $"Rejecting call with {HfpCommand.HangUp}.");
+        var result = await _activeTransport.RejectAsync();
+        EnsureTransportAvailable("reject", result);
+        _log.Info("HFP", result.Message);
         await EndCallAsync(RecentCallStatus.Rejected);
     }
 
     public async Task EndAsync()
     {
-        EnsureMockModeOrThrow("end", HfpCommand.HangUp);
         if (CurrentCall is null)
         {
             throw new InvalidOperationException("No active call is available to end.");
         }
 
-        _log.Info("HFP", $"Ending call with {HfpCommand.HangUp}.");
+        var result = await _activeTransport.EndAsync();
+        EnsureTransportAvailable("end", result);
+        _log.Info("HFP", result.Message);
         await EndCallAsync(CurrentCall.Status == CallStatus.Active ? RecentCallStatus.Answered : RecentCallStatus.Missed);
     }
 
@@ -144,16 +157,15 @@ public sealed class HfpController
         Emit(HfpCallEventKind.Ended, ended);
     }
 
-    private void EnsureMockModeOrThrow(string operation, string command)
+    private void EnsureTransportAvailable(string operation, HfpTransportResult result)
     {
-        if (_store.Data.HelperMode == HelperMode.MockMode)
+        if (result.Success)
         {
             return;
         }
 
-        // TODO: Add the real RFCOMM/HFP transport here for adapters and drivers that expose a usable socket.
-        _log.Warning("HFP", $"RealMode requested '{operation}' using {command}, but this build does not have a live RFCOMM HFP socket. Windows commonly restricts desktop apps from acting as an HFP audio gateway without driver/OEM support.");
-        throw new InvalidOperationException($"RealMode HFP {operation} is unavailable on this machine. Switch to MockMode for UI testing, or inspect logs for Bluetooth/HFP service detection.");
+        _log.Warning("HFP", $"Unable to {operation} with {_activeTransport.Name}. Command: {result.Command}. {result.Message}");
+        throw new InvalidOperationException(result.Message);
     }
 
     private void Emit(HfpCallEventKind kind, object payload)

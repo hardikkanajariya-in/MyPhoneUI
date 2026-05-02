@@ -24,4 +24,5 @@ var bridge = new BridgeServer(port, log, store, bluetooth, audio, hfp);
 
 log.Info("Startup", $"DeskCall helper starting on ws://127.0.0.1:{port}/deskcall/");
 await store.LoadAsync();
+hfp.SetMode(store.Data.HelperMode);
 await bridge.StartAsync();
