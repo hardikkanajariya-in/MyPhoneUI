@@ -67,7 +67,7 @@ export class DeskCallBridge {
 
   private openSocket() {
     const port = this.runtime?.helperPort ?? 49321;
-    this.socket = new WebSocket(`ws://127.0.0.1:${port}/deskcall`);
+    this.socket = new WebSocket(`ws://127.0.0.1:${port}/deskcall/`);
 
     this.socket.onopen = () => {
       this.emitConnection(true);

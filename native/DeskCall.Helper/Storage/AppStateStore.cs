@@ -14,11 +14,12 @@ public sealed class AppStateStore
 
     private readonly LogService _log;
     private readonly string _statePath;
+    private readonly string _contactsPath;
 
     public AppStateStore(LogService log)
     {
         _log = log;
-        JsonOptions.Converters.Add(new JsonStringEnumConverter());
+        JsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         var root = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         if (string.IsNullOrWhiteSpace(root))
         {
@@ -28,29 +29,52 @@ public sealed class AppStateStore
         var directory = Path.Combine(root, "DeskCall");
         Directory.CreateDirectory(directory);
         _statePath = Path.Combine(directory, "appstate.json");
+        _contactsPath = Path.Combine(directory, "contacts.json");
     }
 
     public DeskCallData Data { get; private set; } = new();
 
     public async Task LoadAsync()
     {
-        if (!File.Exists(_statePath))
+        var shouldSave = false;
+        if (File.Exists(_statePath))
         {
-            SeedContacts();
-            await SaveAsync();
-            _log.Info("Storage", $"Created DeskCall state at {_statePath}.");
-            return;
+            var json = await File.ReadAllTextAsync(_statePath);
+            Data = JsonSerializer.Deserialize<DeskCallData>(json, JsonOptions) ?? new DeskCallData();
+            _log.Info("Storage", $"Loaded DeskCall state from {_statePath}.");
+        }
+        else
+        {
+            shouldSave = true;
+            _log.Info("Storage", $"DeskCall state will be created at {_statePath}.");
         }
 
-        var json = await File.ReadAllTextAsync(_statePath);
-        Data = JsonSerializer.Deserialize<DeskCallData>(json, JsonOptions) ?? new DeskCallData();
-        _log.Info("Storage", $"Loaded DeskCall state from {_statePath}.");
+        if (File.Exists(_contactsPath))
+        {
+            var contactsJson = await File.ReadAllTextAsync(_contactsPath);
+            Data.Contacts = JsonSerializer.Deserialize<List<ContactRecord>>(contactsJson, JsonOptions) ?? [];
+            _log.Info("Storage", $"Loaded contacts from {_contactsPath}.");
+        }
+        else
+        {
+            SeedContacts();
+            shouldSave = true;
+            _log.Info("Storage", $"Local contacts file will be created at {_contactsPath}.");
+        }
+
+        if (shouldSave)
+        {
+            await SaveAsync();
+        }
     }
 
     public Task SaveAsync()
     {
-        var json = JsonSerializer.Serialize(Data, JsonOptions);
-        return File.WriteAllTextAsync(_statePath, json);
+        var stateJson = JsonSerializer.Serialize(Data, JsonOptions);
+        var contactsJson = JsonSerializer.Serialize(Data.Contacts, JsonOptions);
+        return Task.WhenAll(
+            File.WriteAllTextAsync(_statePath, stateJson),
+            File.WriteAllTextAsync(_contactsPath, contactsJson));
     }
 
     public ContactRecord CreateContact(ContactDraft draft)
@@ -97,6 +121,7 @@ public sealed class DeskCallData
     public string? SelectedDeviceId { get; set; }
     public string? SelectedDeviceName { get; set; }
     public HelperMode HelperMode { get; set; } = HelperMode.MockMode;
+    [JsonIgnore]
     public List<ContactRecord> Contacts { get; set; } = [];
     public List<RecentCallRecord> RecentCalls { get; set; } = [];
 }

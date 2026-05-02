@@ -51,7 +51,7 @@ export function SettingsPanel({
         <div className="mt-6 rounded-2xl border border-line bg-white/5 p-4">
           <h3 className="mb-3 font-semibold text-white">Helper mode</h3>
           <div className="grid grid-cols-2 gap-3">
-            {(["MockMode", "RealMode"] as HelperMode[]).map((mode) => (
+            {(["mockMode", "realMode"] as HelperMode[]).map((mode) => (
               <button
                 key={mode}
                 type="button"
@@ -60,7 +60,7 @@ export function SettingsPanel({
                   state.helperMode === mode ? "border-cyan-300/50 bg-cyan-300/12 text-cyan-100" : "border-line bg-white/5 text-slate-300 hover:bg-white/10"
                 }`}
               >
-                {mode}
+                {formatMode(mode)}
               </button>
             ))}
           </div>
@@ -132,4 +132,8 @@ function StatusRow({ icon, label, value, tone }: { icon: ReactNode; label: strin
 
 function handsFreeLabel(state: HelperState) {
   return state.audioEndpoints.some((endpoint) => endpoint.isBluetoothHandsFreeCandidate) ? "Candidate found" : "Not detected";
+}
+
+function formatMode(mode: HelperMode) {
+  return mode === "mockMode" ? "MockMode" : "RealMode";
 }

@@ -41,7 +41,7 @@ export function PhoneStatusCard({
 
       <div className="rounded-2xl border border-cyan-300/15 bg-cyan-300/8 p-5 shadow-glow">
         <div className="mx-auto grid h-24 w-24 place-items-center rounded-[2rem] border border-cyan-200/20 bg-slate-950/60 text-cyan-200">
-          {state.deviceStatus === "Pairing" ? <Loader2 className="animate-spin" size={34} /> : <Phone size={36} />}
+          {state.deviceStatus === "pairing" ? <Loader2 className="animate-spin" size={34} /> : <Phone size={36} />}
         </div>
         <div className="mt-5 text-center">
           <p className="text-sm text-slate-400">{selected?.address ?? "Pair your phone in Windows Bluetooth settings first"}</p>

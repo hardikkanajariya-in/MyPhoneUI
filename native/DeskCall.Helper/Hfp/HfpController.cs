@@ -151,6 +151,7 @@ public sealed class HfpController
             return;
         }
 
+        // TODO: Add the real RFCOMM/HFP transport here for adapters and drivers that expose a usable socket.
         _log.Warning("HFP", $"RealMode requested '{operation}' using {command}, but this build does not have a live RFCOMM HFP socket. Windows commonly restricts desktop apps from acting as an HFP audio gateway without driver/OEM support.");
         throw new InvalidOperationException($"RealMode HFP {operation} is unavailable on this machine. Switch to MockMode for UI testing, or inspect logs for Bluetooth/HFP service detection.");
     }

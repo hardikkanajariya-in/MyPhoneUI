@@ -43,13 +43,13 @@ export function ConnectionLogs({ logs }: { logs: LogEntry[] }) {
 }
 
 function levelClass(level: LogEntry["level"]) {
-  if (level === "Error") {
+  if (level === "error") {
     return "text-rose-300";
   }
-  if (level === "Warning") {
+  if (level === "warning") {
     return "text-amber-300";
   }
-  if (level === "Debug") {
+  if (level === "debug") {
     return "text-slate-500";
   }
   return "text-emerald-300";

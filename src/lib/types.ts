@@ -1,5 +1,5 @@
-export type HelperMode = "RealMode" | "MockMode";
-export type DeviceStatus = "Disconnected" | "Pairing" | "Connected" | "CallActive" | "Error";
+export type HelperMode = "realMode" | "mockMode";
+export type DeviceStatus = "disconnected" | "pairing" | "connected" | "callActive" | "error";
 export type CallStatus = "idle" | "ringing" | "dialing" | "active" | "ended" | "error";
 export type CallDirection = "incoming" | "outgoing";
 
@@ -55,7 +55,7 @@ export interface HelperState {
 export interface LogEntry {
   id: string;
   timestamp: string;
-  level: "Debug" | "Info" | "Warning" | "Error";
+  level: "debug" | "info" | "warning" | "error";
   source: string;
   message: string;
 }

@@ -139,7 +139,7 @@ DeskCall stores local app state under the current Windows user profile:
 
 - Selected phone id/name
 - Helper mode
-- Local `contacts.json`-style contact records inside `appstate.json`
+- Local contacts in `contacts.json`
 - Recent call records
 
 No SMS, photos, notifications, browser data, or phone files are accessed.

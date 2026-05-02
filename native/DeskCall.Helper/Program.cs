@@ -22,6 +22,6 @@ var audio = new AudioDeviceManager(log);
 var hfp = new HfpController(log, store);
 var bridge = new BridgeServer(port, log, store, bluetooth, audio, hfp);
 
-log.Info("Startup", $"DeskCall helper starting on ws://127.0.0.1:{port}/deskcall");
+log.Info("Startup", $"DeskCall helper starting on ws://127.0.0.1:{port}/deskcall/");
 await store.LoadAsync();
 await bridge.StartAsync();

@@ -47,13 +47,17 @@ export function AppShell({ helperConnected, state, onOpenSettings, children }: A
 
 function StatusPill({ label }: { label: string }) {
   const tone =
-    label === "Connected" || label === "CallActive"
+    label === "connected" || label === "callActive"
       ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200"
-      : label === "Pairing"
+      : label === "pairing"
         ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-200"
-        : label === "Error"
+        : label === "error"
           ? "border-rose-300/30 bg-rose-300/10 text-rose-200"
           : "border-slate-500/30 bg-slate-400/10 text-slate-300";
 
-  return <div className={`rounded-full border px-4 py-2 text-sm font-medium ${tone}`}>{label}</div>;
+  return <div className={`rounded-full border px-4 py-2 text-sm font-medium ${tone}`}>{formatStatus(label)}</div>;
+}
+
+function formatStatus(value: string) {
+  return value.replace(/([A-Z])/g, " $1").replace(/^./, (letter) => letter.toUpperCase());
 }

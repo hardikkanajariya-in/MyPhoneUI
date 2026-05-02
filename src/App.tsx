@@ -12,8 +12,8 @@ import { contactNameForNumber } from "./lib/contacts";
 import type { ActiveCall, BluetoothDevice, BridgeInbound, Contact, HelperState, LogEntry } from "./lib/types";
 
 const initialState: HelperState = {
-  helperMode: "MockMode",
-  deviceStatus: "Disconnected",
+  helperMode: "mockMode",
+  deviceStatus: "disconnected",
   audioEndpoints: [],
   recentCalls: []
 };
@@ -36,7 +36,7 @@ export default function App() {
         {
           id: crypto.randomUUID(),
           timestamp: new Date().toISOString(),
-          level: "Error",
+          level: "error",
           source: "Renderer",
           message: error instanceof Error ? error.message : "Unable to connect to DeskCall helper."
         },
@@ -87,20 +87,20 @@ export default function App() {
       case "call:active":
         setIncomingCall(null);
         setActiveCall(message.payload);
-        setState((current) => ({ ...current, deviceStatus: "CallActive" }));
+        setState((current) => ({ ...current, deviceStatus: "callActive" }));
         break;
       case "call:ended":
         setIncomingCall(null);
         setActiveCall(message.payload);
         window.setTimeout(() => setActiveCall(null), 900);
-        setState((current) => ({ ...current, deviceStatus: current.selectedDevice ? "Connected" : "Disconnected" }));
+        setState((current) => ({ ...current, deviceStatus: current.selectedDevice ? "connected" : "disconnected" }));
         break;
       case "call:error":
         setLogs((current) => [
           {
             id: crypto.randomUUID(),
             timestamp: new Date().toISOString(),
-            level: "Error",
+            level: "error",
             source: "HFP",
             message: message.payload.message
           },
@@ -122,7 +122,7 @@ export default function App() {
     createContact: (contact: Pick<Contact, "name" | "phone" | "favorite">) => deskCallBridge.request("contacts:create", contact),
     updateContact: (contact: Contact) => deskCallBridge.request("contacts:update", contact),
     deleteContact: (contactId: string) => deskCallBridge.request("contacts:delete", { contactId }),
-    setMode: (helperMode: "RealMode" | "MockMode") => deskCallBridge.request("helper:setMode", { helperMode }),
+    setMode: (helperMode: "realMode" | "mockMode") => deskCallBridge.request("helper:setMode", { helperMode }),
     mockIncoming: () => deskCallBridge.request("test:incoming"),
     testLog: () => deskCallBridge.request("test:log")
   };

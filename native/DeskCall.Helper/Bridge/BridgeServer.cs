@@ -37,7 +37,7 @@ public sealed class BridgeServer
         _bluetooth = bluetooth;
         _audio = audio;
         _hfp = hfp;
-        JsonOptions.Converters.Add(new JsonStringEnumConverter());
+        JsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         _listener.Prefixes.Add($"http://127.0.0.1:{_port}/deskcall/");
         _log.EntryAdded += entry => _ = BroadcastAsync("log:entry", entry);
         _hfp.CallEvent += OnCallEvent;
