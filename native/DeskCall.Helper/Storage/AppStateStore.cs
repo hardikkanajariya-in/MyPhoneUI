@@ -7,10 +7,7 @@ namespace DeskCall.Helper.Storage;
 
 public sealed class AppStateStore
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        WriteIndented = true
-    };
+    private static readonly JsonSerializerOptions JsonOptions = CreateJsonOptions();
 
     private readonly LogService _log;
     private readonly string _statePath;
@@ -19,7 +16,6 @@ public sealed class AppStateStore
     public AppStateStore(LogService log)
     {
         _log = log;
-        JsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         var root = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         if (string.IsNullOrWhiteSpace(root))
         {
@@ -113,6 +109,16 @@ public sealed class AppStateStore
     {
         Data.Contacts.Add(new ContactRecord(Guid.NewGuid().ToString("N"), "DeskCall Test", "+1 415 555 0198", true, DateTimeOffset.UtcNow));
         Data.Contacts.Add(new ContactRecord(Guid.NewGuid().ToString("N"), "Support Desk", "+1 212 555 0144", false, DateTimeOffset.UtcNow));
+    }
+
+    private static JsonSerializerOptions CreateJsonOptions()
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        {
+            WriteIndented = true
+        };
+        options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+        return options;
     }
 }
 

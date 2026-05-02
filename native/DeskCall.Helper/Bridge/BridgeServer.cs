@@ -13,10 +13,7 @@ namespace DeskCall.Helper.Bridge;
 
 public sealed class BridgeServer
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
-    {
-        WriteIndented = false
-    };
+    private static readonly JsonSerializerOptions JsonOptions = CreateJsonOptions();
 
     private readonly int _port;
     private readonly LogService _log;
@@ -37,7 +34,6 @@ public sealed class BridgeServer
         _bluetooth = bluetooth;
         _audio = audio;
         _hfp = hfp;
-        JsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         _listener.Prefixes.Add($"http://127.0.0.1:{_port}/deskcall/");
         _log.EntryAdded += entry => _ = BroadcastAsync("log:entry", entry);
         _hfp.CallEvent += OnCallEvent;
@@ -308,5 +304,15 @@ public sealed class BridgeServer
         var json = JsonSerializer.Serialize(message, JsonOptions);
         var bytes = Encoding.UTF8.GetBytes(json);
         await socket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
+    }
+
+    private static JsonSerializerOptions CreateJsonOptions()
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        {
+            WriteIndented = false
+        };
+        options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+        return options;
     }
 }
