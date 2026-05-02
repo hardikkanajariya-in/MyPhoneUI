@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-electron/
+dist-native/
+*.log
+.vite/
+.vs/
+bin/
+obj/
+native/DeskCall.Helper/bin/
+native/DeskCall.Helper/obj/
