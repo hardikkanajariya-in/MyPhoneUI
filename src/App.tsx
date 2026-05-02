@@ -12,7 +12,7 @@ import { contactNameForNumber } from "./lib/contacts";
 import type { ActiveCall, BluetoothDevice, BridgeInbound, Contact, HelperState, LogEntry } from "./lib/types";
 
 const initialState: HelperState = {
-  helperMode: "mockMode",
+  helperMode: "realMode",
   deviceStatus: "disconnected",
   audioEndpoints: [],
   recentCalls: []
@@ -122,9 +122,7 @@ export default function App() {
     createContact: (contact: Pick<Contact, "name" | "phone" | "favorite">) => deskCallBridge.request("contacts:create", contact),
     updateContact: (contact: Contact) => deskCallBridge.request("contacts:update", contact),
     deleteContact: (contactId: string) => deskCallBridge.request("contacts:delete", { contactId }),
-    setMode: (helperMode: "realMode" | "mockMode") => deskCallBridge.request("helper:setMode", { helperMode }),
-    mockIncoming: () => deskCallBridge.request("test:incoming"),
-    testLog: () => deskCallBridge.request("test:log")
+    testLog: () => deskCallBridge.request("logs:list")
   };
 
   return (
@@ -133,39 +131,41 @@ export default function App() {
       state={state}
       onOpenSettings={() => setSettingsOpen(true)}
     >
-      <div className="grid h-full grid-cols-[320px_minmax(420px,1fr)_360px] gap-5">
-        <div className="flex min-h-0 flex-col gap-5">
-          <PhoneStatusCard
-            state={state}
-            devices={devices}
-            helperConnected={helperConnected}
-            onRefreshDevices={bridgeAction.refreshDevices}
-            onSelectDevice={bridgeAction.selectDevice}
-            onConnect={bridgeAction.connectDevice}
-            onDisconnect={bridgeAction.disconnectDevice}
+      <div className="flex flex-col gap-5">
+        <div className="grid items-start gap-5 xl:grid-cols-[320px_minmax(420px,1fr)_360px]">
+          <div className="flex min-h-0 flex-col gap-5">
+            <PhoneStatusCard
+              state={state}
+              devices={devices}
+              helperConnected={helperConnected}
+              onRefreshDevices={bridgeAction.refreshDevices}
+              onSelectDevice={bridgeAction.selectDevice}
+              onConnect={bridgeAction.connectDevice}
+              onDisconnect={bridgeAction.disconnectDevice}
+            />
+          </div>
+
+          <main className="flex min-h-0 flex-col gap-5">
+            <ActiveCallPanel
+              activeCall={activeCall ? { ...activeCall, name: activeCall.name ?? selectedContactName } : null}
+              onAnswer={bridgeAction.answer}
+              onReject={bridgeAction.reject}
+              onEnd={bridgeAction.end}
+            />
+            <DialPad onDial={bridgeAction.dial} disabled={!helperConnected} />
+          </main>
+
+          <ContactList
+            contacts={contacts}
+            onDial={(phone) => bridgeAction.dial(phone)}
+            onCreate={bridgeAction.createContact}
+            onUpdate={bridgeAction.updateContact}
+            onDelete={bridgeAction.deleteContact}
           />
         </div>
 
-        <main className="flex min-h-0 flex-col gap-5">
-          <ActiveCallPanel
-            activeCall={activeCall ? { ...activeCall, name: activeCall.name ?? selectedContactName } : null}
-            onAnswer={bridgeAction.answer}
-            onReject={bridgeAction.reject}
-            onEnd={bridgeAction.end}
-          />
-          <DialPad onDial={bridgeAction.dial} disabled={!helperConnected} />
-        </main>
-
-        <ContactList
-          contacts={contacts}
-          onDial={(phone) => bridgeAction.dial(phone)}
-          onCreate={bridgeAction.createContact}
-          onUpdate={bridgeAction.updateContact}
-          onDelete={bridgeAction.deleteContact}
-        />
+        <ConnectionLogs logs={logs} />
       </div>
-
-      <ConnectionLogs logs={logs} />
 
       {incomingCall ? (
         <IncomingCallModal
@@ -181,8 +181,6 @@ export default function App() {
         devices={devices}
         helperConnected={helperConnected}
         onClose={() => setSettingsOpen(false)}
-        onSetMode={bridgeAction.setMode}
-        onMockIncoming={bridgeAction.mockIncoming}
         onTestLog={bridgeAction.testLog}
         onRefreshDevices={bridgeAction.refreshDevices}
       />

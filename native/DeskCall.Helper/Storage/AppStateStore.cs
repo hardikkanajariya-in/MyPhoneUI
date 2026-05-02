@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using DeskCall.Helper.Hfp;
 using DeskCall.Helper.Logging;
 
@@ -36,6 +37,11 @@ public sealed class AppStateStore
         if (File.Exists(_statePath))
         {
             var json = await File.ReadAllTextAsync(_statePath);
+            if (JsonNode.Parse(json) is JsonObject root)
+            {
+                root["helperMode"] = "realMode";
+                json = root.ToJsonString();
+            }
             Data = JsonSerializer.Deserialize<DeskCallData>(json, JsonOptions) ?? new DeskCallData();
             _log.Info("Storage", $"Loaded DeskCall state from {_statePath}.");
         }
@@ -62,6 +68,8 @@ public sealed class AppStateStore
         {
             await SaveAsync();
         }
+
+        Data.HelperMode = HelperMode.RealMode;
     }
 
     public Task SaveAsync()
@@ -126,7 +134,7 @@ public sealed class DeskCallData
 {
     public string? SelectedDeviceId { get; set; }
     public string? SelectedDeviceName { get; set; }
-    public HelperMode HelperMode { get; set; } = HelperMode.MockMode;
+    public HelperMode HelperMode { get; set; } = HelperMode.RealMode;
     [JsonIgnore]
     public List<ContactRecord> Contacts { get; set; } = [];
     public List<RecentCallRecord> RecentCalls { get; set; } = [];

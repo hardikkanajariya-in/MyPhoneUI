@@ -1,6 +1,6 @@
-import { Bluetooth, Headphones, Radio, RefreshCw, TestTube2, X } from "lucide-react";
+import { Bluetooth, Headphones, Radio, RefreshCw, X } from "lucide-react";
 import type { ReactNode } from "react";
-import type { BluetoothDevice, HelperMode, HelperState } from "../lib/types";
+import type { BluetoothDevice, HelperState } from "../lib/types";
 
 interface SettingsPanelProps {
   open: boolean;
@@ -8,8 +8,6 @@ interface SettingsPanelProps {
   devices: BluetoothDevice[];
   helperConnected: boolean;
   onClose: () => void;
-  onSetMode: (mode: HelperMode) => Promise<unknown>;
-  onMockIncoming: () => Promise<unknown>;
   onTestLog: () => Promise<unknown>;
   onRefreshDevices: () => Promise<unknown>;
 }
@@ -20,8 +18,6 @@ export function SettingsPanel({
   devices,
   helperConnected,
   onClose,
-  onSetMode,
-  onMockIncoming,
   onTestLog,
   onRefreshDevices
 }: SettingsPanelProps) {
@@ -31,7 +27,7 @@ export function SettingsPanel({
 
   return (
     <div className="absolute inset-0 z-30 flex justify-end bg-slate-950/50 backdrop-blur-sm">
-      <aside className="h-full w-[460px] border-l border-line bg-slate-950/92 p-6 shadow-panel">
+      <aside className="flex h-full w-[460px] flex-col overflow-y-auto border-l border-line bg-slate-950/92 p-6 shadow-panel">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">Settings</p>
@@ -49,33 +45,11 @@ export function SettingsPanel({
         </div>
 
         <div className="mt-6 rounded-2xl border border-line bg-white/5 p-4">
-          <h3 className="mb-3 font-semibold text-white">Helper mode</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {(["mockMode", "realMode"] as HelperMode[]).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => void onSetMode(mode)}
-                className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
-                  state.helperMode === mode ? "border-cyan-300/50 bg-cyan-300/12 text-cyan-100" : "border-line bg-white/5 text-slate-300 hover:bg-white/10"
-                }`}
-              >
-                {formatMode(mode)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-6 rounded-2xl border border-line bg-white/5 p-4">
-          <h3 className="mb-3 font-semibold text-white">Testing</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <button type="button" onClick={() => void onMockIncoming()} className="flex items-center justify-center gap-2 rounded-xl bg-cyan-300 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200">
-              <TestTube2 size={16} />
-              Incoming
-            </button>
+          <h3 className="mb-3 font-semibold text-white">Diagnostics</h3>
+          <div className="grid gap-3">
             <button type="button" onClick={() => void onTestLog()} className="flex items-center justify-center gap-2 rounded-xl border border-line bg-white/8 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/12">
               <RefreshCw size={16} />
-              Test log
+              Refresh helper logs
             </button>
           </div>
         </div>
@@ -132,8 +106,4 @@ function StatusRow({ icon, label, value, tone }: { icon: ReactNode; label: strin
 
 function handsFreeLabel(state: HelperState) {
   return state.audioEndpoints.some((endpoint) => endpoint.isBluetoothHandsFreeCandidate) ? "Candidate found" : "Not detected";
-}
-
-function formatMode(mode: HelperMode) {
-  return mode === "mockMode" ? "MockMode" : "RealMode";
 }

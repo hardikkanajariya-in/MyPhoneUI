@@ -2,8 +2,7 @@ namespace DeskCall.Helper.Hfp;
 
 public enum HelperMode
 {
-    RealMode,
-    MockMode
+    RealMode
 }
 
 public enum CallStatus

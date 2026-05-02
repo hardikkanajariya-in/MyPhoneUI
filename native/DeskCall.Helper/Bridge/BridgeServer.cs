@@ -36,7 +36,6 @@ public sealed class BridgeServer
         _hfp = hfp;
         _listener.Prefixes.Add($"http://127.0.0.1:{_port}/deskcall/");
         _log.EntryAdded += entry => _ = BroadcastAsync("log:entry", entry);
-        _hfp.CallEvent += OnCallEvent;
     }
 
     public async Task StartAsync()
@@ -139,16 +138,6 @@ public sealed class BridgeServer
         {
             case "helper:getStatus":
                 return BuildState();
-            case "helper:setMode":
-            {
-                var payload = ReadPayload<SetModePayload>(envelope);
-                _store.Data.HelperMode = payload.HelperMode;
-                await _store.SaveAsync();
-                _hfp.SetMode(payload.HelperMode);
-                await BroadcastAsync("device:statusChanged", BuildState());
-                _log.Info("Settings", $"Helper mode changed to {payload.HelperMode}.");
-                return BuildState();
-            }
             case "devices:list":
                 _lastDevices = await _bluetooth.ListPairedDevicesAsync();
                 await BroadcastAsync("device:listResult", _lastDevices);
@@ -221,12 +210,6 @@ public sealed class BridgeServer
             case "logs:list":
                 await BroadcastAsync("logs:listResult", _log.GetEntries());
                 return _log.GetEntries();
-            case "test:incoming":
-                await _hfp.MockIncomingAsync("+1 415 555 0198", "DeskCall Test");
-                return _hfp.CurrentCall;
-            case "test:log":
-                _log.Info("Test", "Manual test log from settings panel.");
-                return true;
             default:
                 throw new InvalidOperationException($"Unknown bridge message type '{envelope.Type}'.");
         }
@@ -248,20 +231,6 @@ public sealed class BridgeServer
             selectedDevice,
             _lastAudioEndpoints,
             _store.Data.RecentCalls);
-    }
-
-    private void OnCallEvent(HfpCallEvent callEvent)
-    {
-        var type = callEvent.Kind switch
-        {
-            HfpCallEventKind.Incoming => "call:incoming",
-            HfpCallEventKind.Ringing => "call:ringing",
-            HfpCallEventKind.Active => "call:active",
-            HfpCallEventKind.Ended => "call:ended",
-            HfpCallEventKind.Error => "call:error",
-            _ => "call:error"
-        };
-        _ = BroadcastAsync(type, callEvent.Payload);
     }
 
     private static T ReadPayload<T>(BridgeEnvelope envelope)

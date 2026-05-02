@@ -17,11 +17,16 @@ body {
   margin: 0;
   min-width: 1000px;
   min-height: 720px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background:
     radial-gradient(circle at top left, rgba(14, 165, 233, 0.2), transparent 34rem),
     radial-gradient(circle at 82% 16%, rgba(45, 212, 191, 0.14), transparent 30rem),
     linear-gradient(135deg, #06101d 0%, #0b1524 48%, #08111f 100%);
+}
+
+#root {
+  min-height: 100vh;
 }
 
 button,

@@ -23,7 +23,7 @@ export function PhoneStatusCard({
   const selected = state.selectedDevice ?? devices.find((device) => device.id === state.selectedDeviceId);
 
   return (
-    <section className="glass-panel flex min-h-0 flex-1 flex-col rounded-2xl p-5">
+    <section className="glass-panel flex flex-col rounded-2xl p-5">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">Selected phone</p>
@@ -69,12 +69,12 @@ export function PhoneStatusCard({
         </div>
       </div>
 
-      <div className="mt-5 flex min-h-0 flex-1 flex-col">
+      <div className="mt-5 flex flex-col">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-white">Paired devices</h3>
           <span className="text-xs text-slate-500">{devices.length} found</span>
         </div>
-        <div className="min-h-0 space-y-2 overflow-y-auto pr-1">
+        <div className="space-y-2">
           {devices.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-600/60 p-4 text-sm text-slate-400">
               Use refresh after pairing your phone in Windows Settings.

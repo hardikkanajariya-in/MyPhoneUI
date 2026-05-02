@@ -11,7 +11,7 @@ interface AppShellProps {
 
 export function AppShell({ helperConnected, state, onOpenSettings, children }: AppShellProps) {
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden px-6 pb-5 pt-6 text-slate-100">
+    <div className="relative min-h-screen px-6 pb-6 pt-6 text-slate-100">
       <header className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-400/15 text-cyan-200 soft-ring">
@@ -40,7 +40,7 @@ export function AppShell({ helperConnected, state, onOpenSettings, children }: A
         </div>
       </header>
 
-      <div className="min-h-0 flex-1">{children}</div>
+      <div>{children}</div>
     </div>
   );
 }

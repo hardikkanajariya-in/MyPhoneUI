@@ -1,4 +1,4 @@
-export type HelperMode = "realMode" | "mockMode";
+export type HelperMode = "realMode";
 export type DeviceStatus = "disconnected" | "pairing" | "connected" | "callActive" | "error";
 export type CallStatus = "idle" | "ringing" | "dialing" | "active" | "ended" | "error";
 export type CallDirection = "incoming" | "outgoing";

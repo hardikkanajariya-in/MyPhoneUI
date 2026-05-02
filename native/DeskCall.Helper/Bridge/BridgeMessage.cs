@@ -20,7 +20,6 @@ public sealed record BridgeOutbound(string Type, object? Payload);
 public sealed record SelectDevicePayload(string DeviceId);
 public sealed record DialPayload(string Number);
 public sealed record DeleteContactPayload(string ContactId);
-public sealed record SetModePayload(HelperMode HelperMode);
 
 public sealed record HelperStateDto(
     string? SelectedDeviceId,

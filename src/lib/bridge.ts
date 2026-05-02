@@ -10,10 +10,16 @@ export class DeskCallBridge {
   private pending = new Map<string, { resolve: (value: unknown) => void; reject: (reason?: unknown) => void }>();
   private runtime: RuntimeInfo | null = null;
   private reconnectTimer: number | null = null;
+  private connectPromise: Promise<void> | null = null;
 
   async connect() {
+    if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
+      return this.connectPromise ?? Promise.resolve();
+    }
+
     this.runtime = await this.getRuntime();
-    this.openSocket();
+    this.connectPromise = this.openSocket();
+    return this.connectPromise;
   }
 
   onMessage(listener: Listener) {
@@ -65,43 +71,47 @@ export class DeskCallBridge {
     return { helperPort: 49321, platform: navigator.platform, isPackaged: false };
   }
 
-  private openSocket() {
+  private openSocket(): Promise<void> {
     const port = this.runtime?.helperPort ?? 49321;
     this.socket = new WebSocket(`ws://127.0.0.1:${port}/deskcall/`);
 
-    this.socket.onopen = () => {
-      this.emitConnection(true);
-      this.request("helper:getStatus").catch(() => undefined);
-      this.request("contacts:list").catch(() => undefined);
-      this.request("logs:list").catch(() => undefined);
-    };
+    return new Promise((resolve) => {
+      this.socket!.onopen = () => {
+        this.emitConnection(true);
+        this.request("helper:getStatus").catch(() => undefined);
+        this.request("contacts:list").catch(() => undefined);
+        this.request("logs:list").catch(() => undefined);
+        resolve();
+      };
 
-    this.socket.onmessage = (event) => {
-      const message = JSON.parse(event.data) as BridgeInbound;
-      if (message.type === "bridge:response") {
-        const pending = this.pending.get(message.requestId);
-        if (pending) {
-          this.pending.delete(message.requestId);
-          if (message.error) {
-            pending.reject(new Error(message.error));
-          } else {
-            pending.resolve(message.payload);
+      this.socket!.onmessage = (event) => {
+        const message = JSON.parse(event.data) as BridgeInbound;
+        if (message.type === "bridge:response") {
+          const pending = this.pending.get(message.requestId);
+          if (pending) {
+            this.pending.delete(message.requestId);
+            if (message.error) {
+              pending.reject(new Error(message.error));
+            } else {
+              pending.resolve(message.payload);
+            }
           }
+          return;
         }
-        return;
-      }
 
-      this.listeners.forEach((listener) => listener(message));
-    };
+        this.listeners.forEach((listener) => listener(message));
+      };
 
-    this.socket.onclose = () => {
-      this.emitConnection(false);
-      this.scheduleReconnect();
-    };
+      this.socket!.onclose = () => {
+        this.emitConnection(false);
+        this.connectPromise = null;
+        this.scheduleReconnect();
+      };
 
-    this.socket.onerror = () => {
-      this.emitConnection(false);
-    };
+      this.socket!.onerror = () => {
+        this.emitConnection(false);
+      };
+    });
   }
 
   private scheduleReconnect() {

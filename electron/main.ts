@@ -70,7 +70,6 @@ async function createWindow() {
     minHeight: 720,
     title: "DeskCall",
     backgroundColor: "#07111f",
-    titleBarStyle: "hiddenInset",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -80,7 +79,6 @@ async function createWindow() {
 
   if (isDev) {
     await mainWindow.loadURL("http://127.0.0.1:5173");
-    mainWindow.webContents.openDevTools({ mode: "detach" });
   } else {
     await mainWindow.loadFile(path.join(app.getAppPath(), "dist", "index.html"));
   }

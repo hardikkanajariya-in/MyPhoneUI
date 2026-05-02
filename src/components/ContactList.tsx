@@ -47,7 +47,7 @@ export function ContactList({ contacts, onDial, onCreate, onUpdate, onDelete }: 
   }
 
   return (
-    <aside className="glass-panel flex min-h-0 flex-col rounded-2xl p-5">
+    <aside className="glass-panel flex flex-col rounded-2xl p-5">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">Contacts</p>
@@ -117,7 +117,7 @@ export function ContactList({ contacts, onDial, onCreate, onUpdate, onDelete }: 
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+      <div className="space-y-3">
         {filtered.map((contact) => (
           <article key={contact.id} className="rounded-2xl border border-line bg-white/6 p-4">
             <div className="flex items-start gap-3">

@@ -7,7 +7,7 @@ export function ConnectionLogs({ logs }: { logs: LogEntry[] }) {
   const visibleLogs = expanded ? logs.slice(0, 80) : logs.slice(0, 3);
 
   return (
-    <section className={`glass-panel absolute bottom-5 left-6 right-6 rounded-2xl transition-all ${expanded ? "h-72" : "h-24"}`}>
+    <section className={`glass-panel rounded-2xl transition-all ${expanded ? "max-h-72" : "max-h-24"}`}>
       <button
         type="button"
         onClick={() => setExpanded((value) => !value)}
@@ -22,7 +22,7 @@ export function ConnectionLogs({ logs }: { logs: LogEntry[] }) {
           <ChevronUp size={16} className={`transition ${expanded ? "rotate-180" : ""}`} />
         </span>
       </button>
-      <div className="h-[calc(100%-3rem)] overflow-y-auto px-5 pb-4">
+      <div className={`${expanded ? "max-h-60 overflow-y-auto" : "overflow-hidden"} px-5 pb-4`}>
         <div className="space-y-2 font-mono text-xs">
           {visibleLogs.length === 0 ? (
             <p className="text-slate-500">No helper logs yet.</p>
